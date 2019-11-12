@@ -68,6 +68,7 @@ public class CompositeMessage extends BaseMessage {
 
     /** Adds the message at the end of the array. Increases the array if needed */
     public <T extends CompositeMessage> T add(Message msg) {
+        ensureSameDest(msg);
         ensureCapacity(index);
         msgs[index++]=Objects.requireNonNull(msg);
         return (T)this;
@@ -76,7 +77,7 @@ public class CompositeMessage extends BaseMessage {
     public <T extends CompositeMessage> T add(Message ... messages) {
         ensureCapacity(index + messages.length);
         for(Message msg: messages)
-            msgs[index++]=Objects.requireNonNull(msg);
+            msgs[index++]=Objects.requireNonNull(ensureSameDest(msg));
         return (T)this;
     }
 
@@ -210,6 +211,13 @@ public class CompositeMessage extends BaseMessage {
             msgs=new Message[size+1];
         else if(size >= msgs.length)
             msgs=Arrays.copyOf(msgs, size+1);
+    }
+
+    protected Message ensureSameDest(Message msg) {
+        if(!Objects.equals(dest, msg.dest()))
+            throw new IllegalStateException(String.format("message's destination (%s) does not match destination of CompositeMessage (%s)",
+                                                          msg.dest(), dest));
+        return msg;
     }
 
 

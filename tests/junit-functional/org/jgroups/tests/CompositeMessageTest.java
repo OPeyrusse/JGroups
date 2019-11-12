@@ -14,13 +14,49 @@ import java.nio.ByteBuffer;
 @Test(groups=Global.FUNCTIONAL)
 public class CompositeMessageTest extends MessageTestBase {
     protected static final Address SRC=Util.createRandomAddress("X"), DEST=Util.createRandomAddress("A");
+    protected static final Message M1=create(DEST, 10, false, false);
+    protected static final Message M2=create(DEST, 1000, true, true);
+    protected static final Message M3=new EmptyMessage(DEST);
 
     public void testCreation() {
-        Message m1=create(DEST, 10, false, false);
-        Message m2=create(DEST, 1000, true, true);
+        CompositeMessage msg=new CompositeMessage(DEST, M1, M2);
+        assert msg.getNumberOfMessages() == 2;
+        assert msg.getLength() == M1.getLength() + M2.getLength();
+    }
 
-        Message msg=new CompositeMessage(DEST, m1, m2);
-        assert msg.getLength() == m1.getLength() + m2.getLength();
+    public void testAdd() {
+        CompositeMessage msg=new CompositeMessage(null)
+          .add(new EmptyMessage(null), new BytesMessage(null, "hello".getBytes()))
+          .add(new ObjectMessageSerializable(null, "hello world"));
+        assert msg.getNumberOfMessages() == 3;
+    }
+
+    public void testAtHead() {
+        CompositeMessage msg=new CompositeMessage(DEST, M2, M3);
+        assert msg.get(0) == M2 && msg.get(1) == M3;
+        msg.addAtHead(M1);
+        assert msg.get(0) == M1 && msg.get(1) == M2 && msg.get(2) == M3;
+    }
+
+    public void testRemove() {
+        CompositeMessage msg=new CompositeMessage(DEST, M1, M2, M3);
+        Message m=msg.remove();
+        assert m == M3;
+        assert msg.getNumberOfMessages() == 2;
+        m=msg.removeAtHead();
+        assert m == M1;
+        assert msg.getNumberOfMessages() == 1;
+        assert msg.get(0) == M2;
+    }
+
+    public void testCopy() {
+        CompositeMessage msg=new CompositeMessage(DEST, M1, M2, M3);
+        CompositeMessage copy=msg.copy(false, true);
+        assert copy.getNumberOfMessages() == 0;
+        copy=msg.copy(true, true);
+        assert copy.getNumberOfMessages() == 3;
+        assert msg.getLength() == copy.getLength();
+        assert msg.size() == copy.size();
     }
 
 
