@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
@@ -45,9 +46,9 @@ public class FragTest {
     @DataProvider
     static Object[][] fragProvider() {
         return new Object[][] {
-          {FRAG.class},
-          {FRAG2.class},
-          {FRAG3.class},
+          //{FRAG.class},
+          //{FRAG2.class},
+          //{FRAG3.class},
           {FRAG4.class}
         };
     }
@@ -216,8 +217,17 @@ public class FragTest {
         assertForAllMessages(m -> verify(m.getArray()));
     }
 
-    public void testCompositeMessage(Class<? extends Protocol> frag_clazz) {
-        // todo: test
+    public void testCompositeMessage(Class<? extends Protocol> frag_clazz) throws Exception {
+        setup(frag_clazz);
+        CompositeMessage m1=new CompositeMessage(null, new EmptyMessage(null));
+        IntStream.of(10000, 15000, 5000).forEach(n -> m1.add(new BytesMessage(null, new byte[n])));
+        Person p=new Person("Bela Ban", 53, array);
+        m1.add(new ObjectMessageSerializable(null, p));
+        m1.add(new NioMessage(null, ByteBuffer.wrap(array)));
+        m1.add(new NioMessage(null, Util.wrapDirect(array)).useDirectMemory(false));
+
+        CompositeMessage m2=new CompositeMessage(b.getAddress(), new EmptyMessage(b.getAddress()));
+        send(m1, m2);
     }
 
 
@@ -246,12 +256,14 @@ public class FragTest {
         a.send(ucast); // from A --> B
 
         // wait until A and B have received mcast, and until B has received ucast
-        Util.waitUntil(10000, 500, () -> r1.size() == 1 && r2.size() == 2);
+        Util.waitUntil(100000, 500, () -> r1.size() == 1 && r2.size() == 2);
         System.out.printf("A: %s\nB: %s\nB: %s\n",
                           String.format("%s %s", r1.list().get(0).getClass().getSimpleName(), r1.list().get(0)),
                           String.format("%s %s", r2.list().get(0).getClass().getSimpleName(), r2.list().get(0)),
                           String.format("%s %s", r2.list().get(1).getClass().getSimpleName(), r2.list().get(1)));
-        assertForAllMessages(m -> m.getClass().equals(mcast.getClass()) && m.getClass().equals(ucast.getClass()));
+        if(mcast != null && ucast != null)
+            assertForAllMessages(m -> m.getClass().equals(mcast.getClass()) && m.getClass().equals(ucast.getClass()));
+
         assertForAllMessages(m -> m.getSrc().equals(a.getAddress()));
         assert r1.list().get(0).getDest() == null;
         // one dest must be null and the other B:
