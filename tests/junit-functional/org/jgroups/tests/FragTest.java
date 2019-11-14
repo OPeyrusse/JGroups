@@ -41,7 +41,7 @@ public class FragTest {
     protected JChannel            a, b;
     protected MyReceiver<Message> r1=new org.jgroups.util.MyReceiver<>().rawMsgs(true),
                                   r2=new org.jgroups.util.MyReceiver<>().rawMsgs(true);
-    protected static final byte[] array=generate(FRAG_SIZE*2);
+    protected static final byte[] array=Util.generateArray(FRAG_SIZE*2);
 
     @DataProvider
     static Object[][] fragProvider() {
@@ -152,7 +152,7 @@ public class FragTest {
         Message m1=new BytesMessage(null, array), m2=new BytesMessage(b.getAddress(), array);
         send(m1, m2);
         assertForAllMessages(m -> m.getLength() == array.length);
-        assertForAllMessages(m -> verify(m.getArray()));
+        assertForAllMessages(m -> Util.verifyArray(m.getArray()));
     }
 
 
@@ -163,7 +163,7 @@ public class FragTest {
         send(m1, m2);
         assertForAllMessages(m -> {
             MySizeData data=m.getObject();
-            return data.equals(obj) && verify(data.array());
+            return data.equals(obj) && Util.verifyArray(data.array());
         });
     }
 
@@ -175,7 +175,7 @@ public class FragTest {
         send(m1, m2);
         assertForAllMessages(m -> {
             MySizeData data=m.getObject();
-            return data.equals(obj) && verify(data.array());
+            return data.equals(obj) && Util.verifyArray(data.array());
         });
     }
 
@@ -186,7 +186,7 @@ public class FragTest {
         send(m1, m2);
         assertForAllMessages(m -> {
             MyData data=m.getObject();
-            return data.equals(obj) && verify(data.array());
+            return data.equals(obj) && Util.verifyArray(data.array());
         });
     }
 
@@ -197,7 +197,7 @@ public class FragTest {
         send(m1, m2);
         assertForAllMessages(m -> {
             Person p2=m.getObject();
-            return p2.name.equals("Bela Ban") && p2.age == p.age && verify(p.buf);
+            return p2.name.equals("Bela Ban") && p2.age == p.age && Util.verifyArray(p.buf);
         });
     }
 
@@ -206,7 +206,7 @@ public class FragTest {
         NioMessage m1=new NioMessage(null, ByteBuffer.wrap(array)),
           m2=new NioMessage(b.getAddress(), ByteBuffer.wrap(array));
         send(m1, m2);
-        assertForAllMessages(m -> verify(m.getArray()));
+        assertForAllMessages(m -> Util.verifyArray(m.getArray()));
     }
 
     public void testNioDirectMessage(Class<? extends Protocol> frag_clazz) throws Exception {
@@ -214,7 +214,7 @@ public class FragTest {
         NioMessage m1=new NioMessage(null, Util.wrapDirect(array)),
           m2=new NioMessage(b.getAddress(), Util.wrapDirect(array));
         send(m1, m2);
-        assertForAllMessages(m -> verify(m.getArray()));
+        assertForAllMessages(m -> Util.verifyArray(m.getArray()));
     }
 
     public void testCompositeMessage(Class<? extends Protocol> frag_clazz) throws Exception {
@@ -275,22 +275,7 @@ public class FragTest {
         assert Stream.of(r1.list(), r2.list()).flatMap(Collection::stream).allMatch(p);
     }
 
-    protected static byte[] generate(int length) {
-        byte[] array=new byte[length];
-        for(int i=0,num=0; i < array.length/4; i+=4,num++)
-            Bits.writeInt(num, array, i);
-        return array;
-    }
 
-    protected static boolean verify(byte[] array) {
-        for(int i=0,num=0; i < array.length/4; i+=4,num++) {
-            int val=Bits.readInt(array, i);
-            assert val == num : String.format("expected %d, but got %d", num, val);
-            if(val != num)
-                return false;
-        }
-        return true;
-    }
 
 
     protected static class Payload implements Serializable {

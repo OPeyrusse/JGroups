@@ -2900,13 +2900,26 @@ public class Util {
     }
 
 
-    public static byte[] generateArray(int size) {
-        byte[] retval=new byte[size];
-        for(int i=0; i < retval.length; i++) {
-            byte b=(byte)Util.random(26);
-            retval[i]=b;
+    public static byte[] generateArray(int length) {
+        byte[] array=new byte[length];
+        int index=0, num=1;
+        while(index + Global.INT_SIZE <= array.length) {
+            Bits.writeInt(num, array, index);
+            index+=Global.INT_SIZE;
+            num++;
         }
-        return retval;
+        return array;
+    }
+
+    public static boolean verifyArray(byte[] array) {
+        int index=0, expected_num=1;
+        while(index + Global.INT_SIZE <= array.length) {
+            int actual_num=Bits.readInt(array, index);
+            assert expected_num == actual_num : String.format("expected %d, but got %d", expected_num, actual_num);
+            index+=Global.INT_SIZE;
+            expected_num++;
+        }
+        return true;
     }
 
 

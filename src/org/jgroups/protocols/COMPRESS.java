@@ -35,7 +35,7 @@ public class COMPRESS extends Protocol {
     protected int compression_level=Deflater.BEST_COMPRESSION; // this is 9
    
     @Property(description="Minimal payload size of a message (in bytes) for compression to kick in. Default is 500 bytes")
-    protected long min_size=500;
+    protected int min_size=500;
     
     @Property(description="Number of inflaters/deflaters for concurrent processing. Default is 2 ")
     protected int pool_size=2;
@@ -49,6 +49,9 @@ public class COMPRESS extends Protocol {
 
     public COMPRESS() {      
     }
+
+    public int      getMinSize()      {return min_size;}
+    public COMPRESS setMinSize(int s) {this.min_size=s; return this;}
 
 
     public void init() throws Exception {

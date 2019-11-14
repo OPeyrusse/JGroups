@@ -18,12 +18,12 @@ import java.util.function.Consumer;
 public class FragmentedMessageTest {
     protected static final int     FRAG_SIZE=500;
     protected final MessageFactory msg_factory=new DefaultMessageFactory();
-    protected final byte[]         array=generate(1200);
+    protected final byte[]         array=Util.generateArray(1200);
     protected final Address        src=Util.createRandomAddress("X"), dest=Util.createRandomAddress("D");
 
     public void testFragmentationWithBytesMessage() throws Exception {
         Message original_msg=new BytesMessage(dest, array, 0, array.length).setSrc(src);
-        Consumer<Message> verifier=m -> verify(m.getArray());
+        Consumer<Message> verifier=m -> Util.verifyArray(m.getArray());
         _testFragmentation(original_msg, verifier);
     }
 
@@ -35,7 +35,7 @@ public class FragmentedMessageTest {
             System.out.printf("obj: %s\n", d);
             assert d.num == 322649;
             assert d.data.length == data.data.length;
-            verify(d.data);
+            Util.verifyArray(d.data);
         };
         _testFragmentation(original_msg, verifier);
     }
@@ -48,7 +48,7 @@ public class FragmentedMessageTest {
             System.out.printf("obj: %s\n", d);
             assert d.num == 322649;
             assert d.data.length == data.data.length;
-            verify(d.data);
+            Util.verifyArray(d.data);
         };
         _testFragmentation(original_msg, verifier);
     }
@@ -62,14 +62,14 @@ public class FragmentedMessageTest {
             System.out.printf("obj: %s\n", d);
             assert d.age == 322649;
             assert d.buf.length == data.buf.length;
-            verify(d.buf);
+            Util.verifyArray(d.buf);
         };
         _testFragmentation(original_msg, verifier);
     }
 
     public void testFragmentationWithNioHeapMessage() throws Exception {
         Message original_msg=new NioMessage(dest, ByteBuffer.wrap(array)).setSrc(src);
-        Consumer<Message> verifier=m -> verify(m.getArray());
+        Consumer<Message> verifier=m -> Util.verifyArray(m.getArray());
         _testFragmentation(original_msg, verifier);
     }
 
@@ -77,7 +77,7 @@ public class FragmentedMessageTest {
         ByteBuffer buf=ByteBuffer.allocateDirect(array.length);
         buf.put(array).flip();
         Message original_msg=new NioMessage(dest, buf).setSrc(src);
-        Consumer<Message> verifier=m -> verify(m.getArray());
+        Consumer<Message> verifier=m -> Util.verifyArray(m.getArray());
         _testFragmentation(original_msg, verifier);
     }
 
@@ -122,26 +122,7 @@ public class FragmentedMessageTest {
     }
 
 
-    protected static byte[] generate(int length) {
-        byte[] array=new byte[length];
-        int index=0, num=1;
-        while(index + Global.INT_SIZE <= array.length) {
-            Bits.writeInt(num, array, index);
-            index+=Global.INT_SIZE;
-            num++;
-        }
-        return array;
-    }
 
-    protected static void verify(byte[] array) {
-        int index=0, expected_num=1;
-        while(index + Global.INT_SIZE <= array.length) {
-            int actual_num=Bits.readInt(array, index);
-            assert expected_num == actual_num : String.format("expected %d, but got %d", expected_num, actual_num);
-            index+=Global.INT_SIZE;
-            expected_num++;
-        }
-    }
 
 
     protected static class Person implements Serializable {
