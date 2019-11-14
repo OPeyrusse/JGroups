@@ -153,7 +153,7 @@ public class CompositeMessage extends BaseMessage {
         int retval=super.size() + Global.INT_SIZE; // length
         if(msgs != null) {
             for(int i=0; i < index; i++)
-                retval+=msgs[i].getLength() + Global.BYTE_SIZE; // type
+                retval+=msgs[i].size() + Global.BYTE_SIZE; // type
         }
         return retval;
     }

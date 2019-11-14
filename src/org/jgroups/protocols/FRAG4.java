@@ -60,7 +60,7 @@ public class FRAG4 extends FRAG2 {
                 Message frag_msg=msg.hasArray()?
                   msg.copy(false, i == 0).setArray(msg.getArray(), (int)r.low, (int)r.high)
                     .putHeader(this.id, new FragHeader(frag_id, i, num_frags))
-                  : new FragmentedMessage(msg, (int)r.low, (int)r.high).setDest(msg.getDest())
+                  : new FragmentedMessage(msg, (int)r.low, (int)r.high).setDest(msg.getDest()).setSrc(msg.getSrc())
                   .putHeader(this.id, new FragHeader(frag_id, i, num_frags).setOriginalType(msg.getType()));
                 down_prot.down(frag_msg);
             }

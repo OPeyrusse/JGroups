@@ -82,6 +82,13 @@ public class FragmentedMessageTest {
     }
 
 
+    public void testFragmentationWithCompositeMessage() throws Exception {
+        CompositeMessage msg=new CompositeMessage(null, new BytesMessage(null, array),
+                                                  new BytesMessage(null, array));
+        _testFragmentation(msg, m -> {});
+    }
+
+
     protected void _testFragmentation(Message original_msg, Consumer<Message> verifier) throws Exception {
         int serialized_size=original_msg.size();
         ByteArrayDataOutputStream out=new ByteArrayDataOutputStream(serialized_size);
@@ -91,7 +98,6 @@ public class FragmentedMessageTest {
               .setDest(original_msg.getDest()).setSrc(original_msg.getSrc());
             frag.writeTo(out);
         }
-
         ByteArrayDataInputStream in=new ByteArrayDataInputStream(out.buffer(), 0, out.position());
         Message[] msgs=new FragmentedMessage[fragments.size()];
         for(int i=0; i < msgs.length; i++) {
@@ -99,11 +105,9 @@ public class FragmentedMessageTest {
             m.readFrom(in);
             msgs[i]=m;
         }
-
-        InputStream seq=new SequenceInputStream(Util.enumerate(msgs, 0, msgs.length,
-                                                               m -> new ByteArrayDataInputStream(m.getArray(),
-                                                                                                 m.getOffset(),
-                                                                                                 m.getLength())));
+        InputStream seq=
+          new SequenceInputStream(Util.enumerate(msgs, 0, msgs.length,
+                                                 m -> new ByteArrayDataInputStream(m.getArray(),m.getOffset(),m.getLength())));
         DataInput input=new DataInputStream(seq);
         Message new_msg=msg_factory.create(original_msg.getType());
         new_msg.readFrom(input);
@@ -118,19 +122,27 @@ public class FragmentedMessageTest {
     }
 
 
+    protected static byte[] generate(int length) {
+        byte[] array=new byte[length];
+        int index=0, num=1;
+        while(index + Global.INT_SIZE <= array.length) {
+            Bits.writeInt(num, array, index);
+            index+=Global.INT_SIZE;
+            num++;
+        }
+        return array;
+    }
+
     protected static void verify(byte[] array) {
-        for(int i=0,num=0; i < array.length/4; i+=4,num++) {
-            int val=Bits.readInt(array, i);
-            assert val == num : String.format("expected %d, but got %d", num, val);
+        int index=0, expected_num=1;
+        while(index + Global.INT_SIZE <= array.length) {
+            int actual_num=Bits.readInt(array, index);
+            assert expected_num == actual_num : String.format("expected %d, but got %d", expected_num, actual_num);
+            index+=Global.INT_SIZE;
+            expected_num++;
         }
     }
 
-    protected static byte[] generate(int length) {
-        byte[] array=new byte[length];
-        for(int i=0,num=0; i < array.length/4; i+=4,num++)
-            Bits.writeInt(num, array, i);
-        return array;
-    }
 
     protected static class Person implements Serializable {
         private static final long serialVersionUID=8635045223414419580L;

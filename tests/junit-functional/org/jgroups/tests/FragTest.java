@@ -46,9 +46,9 @@ public class FragTest {
     @DataProvider
     static Object[][] fragProvider() {
         return new Object[][] {
-          //{FRAG.class},
-          //{FRAG2.class},
-          //{FRAG3.class},
+          {FRAG.class},
+          {FRAG2.class},
+          {FRAG3.class},
           {FRAG4.class}
         };
     }

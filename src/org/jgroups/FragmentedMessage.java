@@ -54,6 +54,12 @@ public class FragmentedMessage extends BytesMessage { // we need the superclass'
         return Global.INT_SIZE + length;
     }
 
+    protected void writePayload(DataOutput out) throws IOException {
+        out.writeInt(length);
+        PartialOutputStream pos=new PartialOutputStream(out, offset, length);
+        original_msg.writeTo(pos);
+    }
+
     protected void readPayload(DataInput in) throws IOException {
         this.length=in.readInt();
         if(this.length > 0) {
@@ -62,15 +68,10 @@ public class FragmentedMessage extends BytesMessage { // we need the superclass'
         }
     }
 
-    protected void writePayload(DataOutput out) throws IOException {
-        PartialOutputStream pos=new PartialOutputStream(out, offset, length);
-        out.writeInt(length);
-        original_msg.writeTo(pos);
-    }
 
     public String toString() {
         return String.format("%s [off=%d len=%d] (original msg: %s)",
-                             FragmentedMessage.class.getSimpleName(), offset, length, super.toString());
+                             FragmentedMessage.class.getSimpleName(), offset, length, original_msg);
     }
 
 
