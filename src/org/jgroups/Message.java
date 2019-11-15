@@ -115,7 +115,7 @@ public interface Message extends SizeStreamable, Constructable<Message> {
     boolean                       hasPayload();
 
 
-    /** Returns true if this message has a byte[] array as payload, false otherwise.  */
+    /** Returns true if this message has a byte[] array as payload (even if it's null!), false otherwise */
     boolean                       hasArray();
 
     /**

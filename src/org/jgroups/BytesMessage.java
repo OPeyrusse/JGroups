@@ -114,7 +114,7 @@ public class BytesMessage extends BaseMessage {
 
     public Supplier<Message> create()      {return BytesMessage::new;}
     public byte              getType()     {return Message.BYTES_MSG;}
-    public boolean           hasPayload()  {return array != null && length > 0;}
+    public boolean           hasPayload()  {return array != null;}
     public boolean           hasArray()    {return true;}
     public int               getOffset()   {return offset;}
     public int               getLength()   {return length;}

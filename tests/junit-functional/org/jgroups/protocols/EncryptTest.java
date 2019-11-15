@@ -63,11 +63,7 @@ public abstract class EncryptTest {
         a.send(null, "Hello from A");
         b.send(null, "Hello from B");
         c.send(null, "Hello from C");
-        for(int i=0; i < 10; i++) {
-            if(ra.size() == 3 && rb.size() == 3 && rc.size() == 3)
-                break;
-            Util.sleep(500);
-        }
+        Util.waitUntil(5000, 500, () -> Stream.of(ra,rb,rc).allMatch(r -> r.size() == 3));
         Stream.of(ra, rb, rc).map(MyReceiver::list).map(l -> l.stream().map(msg -> (String)msg.getObject())
           .collect(ArrayList::new, ArrayList::add, (x, y) -> {})).forEach(System.out::println);
         assertForEachReceiver(r -> r.size() == 3);
@@ -78,11 +74,7 @@ public abstract class EncryptTest {
         a.send(new EmptyMessage(null));
         b.send(new EmptyMessage(null));
         c.send(new EmptyMessage(null));
-        for(int i=0; i < 10; i++) {
-            if(ra.size() == 3 && rb.size() == 3 && rc.size() == 3)
-                break;
-            Util.sleep(500);
-        }
+        Util.waitUntil(5000, 500, () -> Stream.of(ra,rb,rc).allMatch(r -> r.size() == 3));
         Stream.of(ra, rb, rc).map(MyReceiver::list).map(l -> l.stream().map(Object::toString)
           .collect(ArrayList::new, ArrayList::add, (x, y) -> {})).forEach(System.out::println);
         assertForEachReceiver(r -> r.size() == 3);
@@ -95,11 +87,7 @@ public abstract class EncryptTest {
         a.send(new BytesMessage(null).setArray(new byte[0], 0, 0));
         b.send(new BytesMessage(null).setArray(new byte[0], 0, 0));
         c.send(new BytesMessage(null).setArray(new byte[0], 0, 0));
-        for(int i=0; i < 10; i++) {
-            if(ra.size() == 3 && rb.size() == 3 && rc.size() == 3)
-                break;
-            Util.sleep(500);
-        }
+        Util.waitUntil(5000, 500, () -> Stream.of(ra,rb,rc).allMatch(r -> r.size() == 3));
         assertForEachReceiver(r -> r.size() == 3);
         assertForEachMessage(msg -> msg.getLength() == 0);
         assertForEachMessage(msg -> Arrays.equals(msg.getArray(), new byte[0]));

@@ -339,7 +339,16 @@ public class MessageTest extends MessageTestBase {
 
     public void testSizeNullMessage() throws Exception {
         Message msg=new BytesMessage();
+        assert !msg.hasPayload();
+        assert msg.hasArray();
         _testSize(msg);
+    }
+
+    public void testSizeWithEmptyArray() {
+        Message msg=new BytesMessage(null, new byte[0]);
+        assert msg.hasPayload();
+        assert msg.hasArray();
+        assert msg.getLength() == 0;
     }
 
 
